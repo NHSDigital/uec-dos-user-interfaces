@@ -10,7 +10,7 @@ on:
 jobs:
 
   derive-tf-versions:
-    name: Derive Min/Max Terraform Versions
+    name: Derive Max Terraform Versions
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,7 +22,6 @@ jobs:
         with:
           directory: ./infrastructure/remote
     outputs:
-      minVersion: ${{ steps.minMax.outputs.minVersion }}
       maxVersion: ${{ steps.minMax.outputs.maxVersion }}
 
   validate-against-tf-versions:
@@ -35,9 +34,6 @@ jobs:
     needs: derive-tf-versions
     strategy:
       matrix:
-        version:
-          - ${{ needs.versionExtract.outputs.minVersion }}
-          - ${{ needs.versionExtract.outputs.maxVersion }}
         stack:
           - github-runner
     steps:
@@ -51,12 +47,12 @@ jobs:
           role-session-name: github-pipeline-session
           aws-region: eu-west-2
 
-      - name: Install Terraform v${{ matrix.version }}
+      - name: Install Terraform v${{ needs.derive-tf-versions.outputs.maxVersion }}
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: ${{ matrix.version }}
+          terraform_version: ${{ needs.derive-tf-versions.outputs.maxVersion }}
 
-      - name: Initialize terraform and validate stack ${{ matrix.stack }} against v${{ matrix.version }}
+      - name: Initialize terraform and validate stack ${{ matrix.stack }} against v${{ needs.derive-tf-versions.outputs.maxVersion }}
         run: |
           export ACTION=validate
           export STACK=${{ matrix.stack }}
