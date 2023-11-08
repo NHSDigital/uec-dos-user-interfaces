@@ -91,3 +91,9 @@ jobs:
   deploy-service-management-domain:
     name: Set up environment
     uses: ./.github/workflows/deploy-service-management-domain.yaml
+    with:
+      github_environment: dev
+      stack: application
+      action: apply
+      tf_vers: ${{needs.derive-tf-versions.outputs.maxVersion}}
+    secrets: inherit
