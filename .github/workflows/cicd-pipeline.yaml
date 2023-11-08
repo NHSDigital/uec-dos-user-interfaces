@@ -100,4 +100,5 @@ jobs:
       stack: application
       action: plan
       tf_vers: ${{needs.derive-tf-versions.outputs.maxVersion}}
+      deployment_workspace: ${{ github.ref_name }}
     secrets: inherit
