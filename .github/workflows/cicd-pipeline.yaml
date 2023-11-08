@@ -8,6 +8,8 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
+  derive-tf-versions:
+    uses: ./.github/workflows/derive-tf-version.yaml
   get-metadata:
     name: Get meta data
     runs-on: ubuntu-latest
@@ -43,8 +45,10 @@ jobs:
   validate-terraform:
     name: Validate terraform code
     uses: ./.github/workflows/validate-terraform.yaml
+    needs: derive-tf-versions
     with:
       ENV: dev
+      tf_vers: ${{needs.derive-tf-versions.outputs.maxVersion}}
     secrets: inherit
   check-python-black-format:
     name: Check format of python code (black)
@@ -91,6 +95,7 @@ jobs:
   deploy-service-management-domain:
     name: Set up environment
     uses: ./.github/workflows/deploy-service-management-domain.yaml
+    needs: derive-tf-versions
     with:
       github_environment: dev
       stack: application
