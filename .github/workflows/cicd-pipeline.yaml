@@ -48,7 +48,6 @@ jobs:
     needs: derive-tf-versions
     with:
       ENV: dev
-      tf_vers: ${{needs.derive-tf-versions.outputs.maxVersion}}
     secrets: inherit
   check-python-black-format:
     name: Check format of python code (black)
