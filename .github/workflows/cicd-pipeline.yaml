@@ -88,3 +88,6 @@ jobs:
       # - name: Run Tests ...
       #   run: |
       #     ?
+  deploy-service-management-domain:
+    name: Set up environment
+    uses: ./.github/workflows/deploy-service-management-domain.yaml
