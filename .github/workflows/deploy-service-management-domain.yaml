@@ -3,20 +3,43 @@ name: Deploy Service Management Domain
 on:
   workflow_call:
     inputs:
-      ENV:
+      github_environment:
+        description: "Defines the Github environment in which to pull environment variables from"
+        required: true
+        type: string
+      deployment_workspace:
+        description: 'Name of the terraform workspace to spin up the service infrastructure'
+        required: false
+        default: 'not-set'
+        type: string
+      stack:
+        required: true
+        type: string
+      action:
+        required: true
+        type: string
+      tf_vers:
+        description: "Version of terraform used"
         required: true
         type: string
 
 jobs:
-
-  deploy-application-infrastructure:
+  echo-workflow-inputs:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.ENV }}
+    steps:
+      - name: echo workflow inputs
+        run: |
+          echo "github environment: ${{ inputs.github_environment }}"
+          echo "deployment workspace: ${{ inputs.deployment_workspace }}"
+          echo "stack: ${{ inputs.stack }}"
+          echo "action: ${{ inputs.action }}"
+  action-stack:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.github_environment }}
     permissions:
       id-token: write
       contents: read
     steps:
-
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
@@ -26,24 +49,22 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: ${{ vars.TF_VERSION }}
+          terraform_version: ${{ inputs.tf_vers }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2.2.0
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/uec-dos-user-interfaces-github-runner
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/uec-dos-service-management-github-runner
           role-session-name: github-pipeline-session
-          aws-region: eu-west-2
+          aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Initialise and Run Terraform Apply
+      - name: Action Infrastructure Stack
         run: |
-          export ACTION=plan
-          export STACK=application
+          export ACTION=${{ inputs.action }}
+          export STACK=${{ inputs.stack }}
           export ACCOUNT_TYPE=${{ vars.ACCOUNT_TYPE }}
-          deployment_workspace: ${{ github.ref_name }}
+          if [ ${{ inputs.deployment_workspace }} != 'not-set' ]
+          then
+            export DEPLOYMENT_WORKSPACE=${{ inputs.deployment_workspace }}
+          fi
           /bin/bash ./scripts/infra-deploy.sh
-
-
-
-
-
