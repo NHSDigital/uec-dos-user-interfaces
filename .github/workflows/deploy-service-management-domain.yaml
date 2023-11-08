@@ -1,0 +1,49 @@
+name: Deploy Service Management Domain
+
+on:
+  workflow_call:
+    inputs:
+      ENV:
+        required: true
+        type: string
+
+jobs:
+
+  deploy-application-infrastructure:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.ENV }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          repository: NHSDigital/uec-dos-service-management
+          ref: main
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ vars.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2.2.0
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/uec-dos-user-interfaces-github-runner
+          role-session-name: github-pipeline-session
+          aws-region: eu-west-2
+
+      - name: Initialise and Run Terraform Apply
+        run: |
+          export ACTION=plan
+          export STACK=application
+          export ACCOUNT_TYPE=${{ vars.ACCOUNT_TYPE }}
+          deployment_workspace: ${{ github.ref_name }}
+          /bin/bash ./scripts/infra-deploy.sh
+
+
+
+
+
