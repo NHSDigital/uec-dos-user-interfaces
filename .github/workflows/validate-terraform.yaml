@@ -12,7 +12,7 @@ on:
 
 jobs:
   validate-against-tf-versions:
-    name: Validate terraform against the min/max versions
+    name: Validate terraform against the max version
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENV }}
     permissions:
@@ -23,6 +23,7 @@ jobs:
         stack:
           - github-runner
           - terraform_management
+          - application
     steps:
       - name: Checkout
         uses: actions/checkout@v4
