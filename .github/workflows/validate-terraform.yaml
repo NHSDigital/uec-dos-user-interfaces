@@ -11,7 +11,7 @@ on:
         type: string
 
 jobs:
-  validate-boostrap-terraform:
+  validate-bootstrap-terraform:
     name: Validate bootstrap terraform against the max version
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENV }}
